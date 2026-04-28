@@ -6,22 +6,16 @@ import com.jcaa.usersmanagement.domain.valueobject.UserEmail;
 import com.jcaa.usersmanagement.domain.valueobject.UserId;
 import com.jcaa.usersmanagement.domain.valueobject.UserName;
 import com.jcaa.usersmanagement.domain.valueobject.UserPassword;
-// VIOLACIÓN Regla 9 (Hexagonal): el dominio importa una clase de infraestructura.
-// Las dependencias siempre deben ir hacia el centro — nunca desde el dominio hacia afuera.
-import com.jcaa.usersmanagement.infrastructure.adapter.persistence.entity.UserEntity;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 
-// Clean Code - Regla 15 (inmutabilidad como preferencia de diseño):
-// Se cambió @Value por @Data + @AllArgsConstructor, lo que expone setters públicos
-// para todos los campos. Un modelo de dominio debe ser inmutable: los setters permiten
-// que cualquier clase modifique el estado del objeto sin pasar por invariantes ni
-// reglas de negocio.
-// Con @Value todos los campos serían final y no habría setters.
-// Con @Data + @AllArgsConstructor cualquiera puede hacer userModel.setStatus(BLOCKED)
-// desde fuera del dominio, rompiendo el encapsulamiento.
-@Data
-@AllArgsConstructor
+// Clean Code - Regla 15 (Inmutabilidad como preferencia de diseño):
+// Se utiliza @Data, lo que genera setters públicos y permite modificar el estado
+// del objeto desde cualquier parte del sistema, rompiendo el encapsulamiento.
+// La regla dice: los objetos de dominio deben ser inmutables para proteger sus invariantes
+// y evitar cambios de estado no controlados.
+// Solución: reemplazar @Data por @Value o definir campos final sin setters,
+// asegurando que cualquier cambio de estado se realice mediante métodos del dominio.
+@Value
 public class UserModel {
 
   UserId id;
@@ -48,17 +42,12 @@ public class UserModel {
     return new UserModel(id, name, email, password, role, UserStatus.INACTIVE);
   }
 
-  // VIOLACIÓN Regla 9 (Hexagonal): método de conversión a entidad de infraestructura dentro del dominio.
-  // El dominio NO debe saber nada sobre cómo se persisten sus datos.
-  public UserEntity toEntity() {
-    return new UserEntity(
-        id.value(),
-        name.value(),
-        email.value(),
-        password.value(),
-        role.name(),
-        status.name(),
-        null,
-        null);
-  }
+  // Clean Code - Regla 9 (Arquitectura Hexagonal - Dependencias hacia el dominio):
+  // El modelo de dominio importa y utiliza una clase de infraestructura (UserEntity),
+  // además de contener lógica de conversión hacia dicha entidad.
+  // Esto acopla el dominio a la capa de persistencia y rompe la independencia del core.
+  // La regla dice: las dependencias siempre deben apuntar hacia el dominio; el dominio
+  // no debe conocer ni depender de detalles de infraestructura.
+  // Solución: eliminar el import de UserEntity y el método toEntity() del dominio.
+  // La conversión debe realizarse en la capa de infraestructura mediante un mapper.
 }
