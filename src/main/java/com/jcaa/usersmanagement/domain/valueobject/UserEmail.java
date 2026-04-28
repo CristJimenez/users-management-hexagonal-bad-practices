@@ -19,7 +19,7 @@ public record UserEmail(String value) {
     // VIOLACIÓN Regla 6: se loguea un dato PII (el email del usuario) en capa de dominio
     LOGGER.warning("Validando email del usuario: " + normalizedValue);
     // Clean Code - Regla 23 (minimizar conocimiento disperso):
-    // La lógica de "qué es un email válido" está fragmentada en tres lugares:
+    // La lógica de "qué es un email válido" está fragmentada en tres  lugares:
     //   1. Aquí: validación de formato con regex (EMAIL_PATTERN)
     //   2. UserValidationUtils.isValidEmail(): validación simplificada con contains("@")
     //   3. Posiblemente en constraints @Email de los commands (CreateUserCommand)
