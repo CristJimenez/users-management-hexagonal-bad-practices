@@ -6,12 +6,6 @@ import com.jcaa.usersmanagement.application.port.in.GetAllUsersUseCase;
 import com.jcaa.usersmanagement.application.port.in.GetUserByIdUseCase;
 import com.jcaa.usersmanagement.application.port.in.LoginUseCase;
 import com.jcaa.usersmanagement.application.port.in.UpdateUserUseCase;
-import com.jcaa.usersmanagement.application.service.dto.command.CreateUserCommand;
-import com.jcaa.usersmanagement.application.service.dto.command.DeleteUserCommand;
-import com.jcaa.usersmanagement.application.service.dto.command.LoginCommand;
-import com.jcaa.usersmanagement.application.service.dto.command.UpdateUserCommand;
-import com.jcaa.usersmanagement.application.service.dto.query.GetUserByIdQuery;
-import com.jcaa.usersmanagement.domain.model.UserModel;
 import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.dto.CreateUserRequest;
 import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.dto.LoginRequest;
 import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.dto.UpdateUserRequest;
@@ -32,27 +26,32 @@ public final class UserController {
   private final LoginUseCase loginUseCase;
 
   public List<UserResponse> listAllUsers() {
-    // VIOLACIÓN Regla 4: uso de abreviatura "usrs" — los nombres deben ser claros y sin abreviaturas.
-    final var usrs = getAllUsersUseCase.execute();
-    return UserDesktopMapper.toResponseList(usrs);
+    // Clean Code - Regla 4 (Nombres descriptivos):
+    // Se utiliza la abreviatura "usrs", lo cual reduce la claridad del código.
+    // La regla dice: los nombres deben ser claros, completos y expresar intención.
+    // Solución: renombrar la variable a "users".
+    final var users = getAllUsersUseCase.execute();
+    return UserDesktopMapper.toResponseList(users);
   }
 
   public UserResponse findUserById(final String id) {
-    // Clean Code - Regla 20 (objeto antes que primitivo cuando el concepto lo merezca):
-    // El parámetro "id" es un String desnudo. El dominio tiene un tipo propio UserId
-    // que encapsula la validación (no vacío, no nulo, trimming).
-    // Al recibir String aquí, cualquier String pasa sin validación hasta llegar al value object.
-    // Recibir UserId directamente haría el contrato más expresivo y seguro.
+    // Clean Code - Regla 20 (Objeto antes que primitivo cuando el concepto lo merezca):
+    // Se utiliza String para representar un identificador de usuario, ignorando el value object UserId.
+    // Esto permite valores inválidos y debilita el contrato del método.
+    // La regla dice: usar tipos del dominio en lugar de primitivos para representar conceptos importantes.
+    // Solución: recibir un UserId o convertir inmediatamente el String a UserId en el mapper.
     final var query = UserDesktopMapper.toGetByIdQuery(id);
     final var user = getUserByIdUseCase.execute(query);
     return UserDesktopMapper.toResponse(user);
   }
 
   public UserResponse createUser(final CreateUserRequest request) {
-    // VIOLACIÓN Regla 9 (Hexagonal): el entrypoint construye directamente el command del dominio
-    // sin pasar por el mapper — la capa entrypoint no debe conocer los tipos internos de la aplicación.
-    final var command = new CreateUserCommand(
-        request.id(), request.name(), request.email(), request.password(), request.role());
+    // Clean Code - Regla 9 (Arquitectura Hexagonal - Aislamiento del entrypoint):
+    // El controlador construye directamente comandos de la capa de aplicación (CreateUserCommand,
+    // DeleteUserCommand, LoginCommand), acoplándose a detalles internos.
+    // La regla dice: el entrypoint no debe conocer ni construir objetos internos de la aplicación.
+    // Solución: delegar la conversión de request a command a un mapper (UserDesktopMapper).
+    final var command = UserDesktopMapper.toCreateCommand(request);
     final var user = createUserUseCase.execute(command);
     return UserDesktopMapper.toResponse(user);
   }
@@ -64,14 +63,22 @@ public final class UserController {
   }
 
   public void deleteUser(final String id) {
-    // VIOLACIÓN Regla 9 (Hexagonal): construye directamente el command de aplicación sin mapper.
-    final var command = new DeleteUserCommand(id);
+    // Clean Code - Regla 9 (Arquitectura Hexagonal - Aislamiento del entrypoint):
+    // El controlador construye directamente comandos de la capa de aplicación (CreateUserCommand,
+    // DeleteUserCommand, LoginCommand), acoplándose a detalles internos.
+    // La regla dice: el entrypoint no debe conocer ni construir objetos internos de la aplicación.
+    // Solución: delegar la conversión de request a command a un mapper (UserDesktopMapper).
+    final var command = UserDesktopMapper.toDeleteCommand(id);
     deleteUserUseCase.execute(command);
   }
 
   public UserResponse login(final LoginRequest request) {
-    // VIOLACIÓN Regla 9 (Hexagonal): construye directamente el command de aplicación sin mapper.
-    final var command = new LoginCommand(request.email(), request.password());
+    // Clean Code - Regla 9 (Arquitectura Hexagonal - Aislamiento del entrypoint):
+    // El controlador construye directamente comandos de la capa de aplicación (CreateUserCommand,
+    // DeleteUserCommand, LoginCommand), acoplándose a detalles internos.
+    // La regla dice: el entrypoint no debe conocer ni construir objetos internos de la aplicación.
+    // Solución: delegar la conversión de request a command a un mapper (UserDesktopMapper).
+    final var command = UserDesktopMapper.toLoginCommand(request);
     final var user = loginUseCase.execute(command);
     return UserDesktopMapper.toResponse(user);
   }
