@@ -18,19 +18,18 @@ public class UserApplicationMapper {
   public static UserModel fromCreateCommandToModel(final CreateUserCommand command) {
     final String userId    = command.id();
     final String userName  = command.name();
-    // Clean Code - Regla 24 (consistencia semántica):
-    // El mismo concepto (email del usuario) se llama "correo" aquí
-    // pero "correoElectronico" en fromUpdateCommandToModel, dentro de la MISMA clase.
-    // La regla dice: las mismas ideas deben nombrarse igual en todo el proyecto.
-    // No usar varios nombres para el mismo concepto sin justificación.
-    final String correo    = command.email();
+    // Clean Code - Regla 24 (Consistencia semántica):
+    // Se usan nombres distintos para el mismo concepto ("correo" y "correoElectronico").
+    // La regla dice: el mismo concepto debe nombrarse igual en el código.
+    // Solución: usar un único nombre consistente.
+    final String email    = command.email();
     final String userPass  = command.password();
     final String userRole  = command.role();
 
     return UserModel.create(
         new UserId(userId),
         new UserName(userName),
-        new UserEmail(correo),
+        new UserEmail(email),
         UserPassword.fromPlainText(userPass),
         UserRole.fromString(userRole));
   }
@@ -45,9 +44,7 @@ public class UserApplicationMapper {
       passwordToUse = UserPassword.fromPlainText(command.password());
     }
 
-    // Clean Code - Regla 24: mismo concepto que "correo" de arriba, pero renombrado
-    // sin razón a "correoElectronico". El lector no puede saber si son conceptos distintos.
-    final String correoElectronico = command.email();
+    final String email = command.email();
 
     // EFECTO CASCADA de la Regla 15 en UserModel:
     // Al usar @Data en vez de @Value, el modelo es mutable. El siguiente llamador
@@ -56,7 +53,7 @@ public class UserApplicationMapper {
     return new UserModel(
         new UserId(command.id()),
         new UserName(command.name()),
-        new UserEmail(correoElectronico),
+        new UserEmail(email),
         passwordToUse,
         UserRole.fromString(command.role()),
         UserStatus.fromString(command.status()));
@@ -77,17 +74,17 @@ public class UserApplicationMapper {
   //   - ¿Qué significa -1? ¿Error de parseo? ¿Rol desconocido? ¿No autorizado?
   //   - El llamador DEBE recordar qué valor representa cada caso — frágil y opaco.
   // Solución: lanzar IllegalArgumentException o usar Optional<Integer> con semántica clara.
-  public static int roleToCode(final String role) {
+  public static String roleToCode(final String role) {
     if (Objects.isNull(role) || role.isBlank()) {
-      return -1;
+      return String.valueOf(new IllegalArgumentException());
     }
     if ("ADMIN".equalsIgnoreCase(role)) {
-      return 1;
+      return "1";
     } else if ("MEMBER".equalsIgnoreCase(role)) {
-      return 2;
+      return "2";
     } else if ("REVIEWER".equalsIgnoreCase(role)) {
-      return 3;
+      return "3";
     }
-    return -1;
+    return String.valueOf(new IllegalArgumentException());
   }
 }
