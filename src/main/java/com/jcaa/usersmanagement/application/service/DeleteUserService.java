@@ -13,14 +13,15 @@ import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
-import java.util.logging.Logger;
 
 @RequiredArgsConstructor
 public final class DeleteUserService implements DeleteUserUseCase {
 
-  // VIOLACIÓN Regla 6: se agrega un Logger manual en vez de usar @Log de Lombok,
-  // y se loguea información técnica mezclada con una captura de excepción no recuperable.
-  private static final Logger logger = Logger.getLogger(DeleteUserService.class.getName());
+  // Clean Code - Regla 6 (Uso de logging):
+  // Se define manualmente un Logger en lugar de usar @Log de Lombok,
+  // generando inconsistencia con el resto del código.
+  // La regla dice: mantener consistencia en herramientas y evitar código repetitivo.
+  // Solución: eliminar el Logger o usar @Log si realmente se necesita.
 
   private final DeleteUserPort deleteUserPort;
   private final GetUserByIdPort getUserByIdPort;
@@ -28,17 +29,16 @@ public final class DeleteUserService implements DeleteUserUseCase {
 
   @Override
   public void execute(final DeleteUserCommand command) {
-    // VIOLACIÓN Regla 6: try-catch sin posibilidad real de recuperar el flujo.
-    // Las excepciones no recuperables deben propagarse al manejador global, no capturarse aquí.
-    try {
-      validateCommand(command);
-      final UserId userId = UserApplicationMapper.fromDeleteCommandToUserId(command);
-      ensureUserExists(userId);
-      deleteUserPort.delete(userId);
-    } catch (final Exception e) {
-      logger.warning("Error al eliminar usuario: " + e.getMessage());
-      throw e;
-    }
+    // Clean Code - Regla 6 (Manejo adecuado de excepciones):
+    // Se utiliza un try-catch que captura Exception sin posibilidad real de recuperación.
+    // La excepción se loguea y se vuelve a lanzar sin agregar valor.
+    // La regla dice: no capturar excepciones si no puedes manejarlas.
+    // Solución: eliminar el bloque try-catch y dejar que la excepción se propague.
+
+    validateCommand(command);
+    final UserId userId = UserApplicationMapper.fromDeleteCommandToUserId(command);
+    ensureUserExists(userId);
+    deleteUserPort.delete(userId);
   }
 
   private void validateCommand(final DeleteUserCommand command) {
