@@ -2,24 +2,35 @@ package com.jcaa.usersmanagement.domain.valueobject;
 
 import com.jcaa.usersmanagement.domain.exception.InvalidUserIdException;
 
+import java.util.Objects;
+
 public record UserId(String value) {
+
+  // Clean Code - Regla 10 (Evitar literales mágicos):
+  // Los mensajes están hardcodeados directamente en los métodos.
+  // Esto dificulta mantenimiento y reutilización.
+  // La regla dice: los textos deben definirse como constantes.
+  // Solución: extraer los mensajes a constantes privadas estáticas.
+
+  private static final String NULL_MESSAGE = "UserId cannot be null";
 
   public UserId {
     // VIOLACIÓN Regla 4: se usa == null en lugar de Objects.requireNonNull() o Objects.isNull().
     // Para objetos siempre debe usarse Objects.isNull/nonNull, nunca operadores == o !=.
-    if (value == null) {
-      throw new NullPointerException("UserId cannot be null");
+    if (Objects.isNull(value)) {
+      throw new NullPointerException(NULL_MESSAGE);
     }
     final String normalizedValue = value.trim();
-    validateNotEmpty(normalizedValue);
-    // asigna el valor normalizado al componente
-    value = normalizedValue;
-  }
-
-  private static void validateNotEmpty(final String normalizedValue) {
+    // Clean Code - Regla 23 (Minimizar conocimiento disperso):
+    // La validación del email está distribuida en múltiples lugares (regex, utils, anotaciones).
+    // Esto dificulta el mantenimiento y genera inconsistencias.
+    // La regla dice: una regla de negocio debe tener una única fuente de verdad.
+    // Solución: centralizar la validación en este Value Object y eliminar duplicaciones externas.
     if (normalizedValue.isEmpty()) {
       throw InvalidUserIdException.becauseValueIsEmpty();
     }
+    // asigna el valor normalizado al componente
+    value = normalizedValue;
   }
 
   @Override
