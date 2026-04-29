@@ -4,7 +4,6 @@ import com.jcaa.usersmanagement.application.port.in.CreateUserUseCase;
 import com.jcaa.usersmanagement.application.port.out.GetUserByEmailPort;
 import com.jcaa.usersmanagement.application.port.out.SaveUserPort;
 import com.jcaa.usersmanagement.application.service.dto.command.CreateUserCommand;
-import com.jcaa.usersmanagement.application.service.mapper.UserApplicationMapper;
 import com.jcaa.usersmanagement.domain.enums.UserRole;
 import com.jcaa.usersmanagement.domain.enums.UserStatus;
 import com.jcaa.usersmanagement.domain.exception.UserAlreadyExistsException;
@@ -32,34 +31,36 @@ public final class CreateUserService implements CreateUserUseCase {
 
   @Override
   public UserModel execute(final CreateUserCommand command) {
-    // Clean Code - Regla 1: cada función debe hacer una sola cosa.
-    // Clean Code - Regla 2: las funciones deben ser cortas.
-    // Clean Code - Regla 3: un solo nivel de abstracción por función.
-    // Este método mezcla: validación de constraints, log de PII, verificación de negocio,
-    // construcción del dominio (nivel técnico bajo), persistencia, notificación y retorno.
-    // Tiene demasiadas responsabilidades y mezcla niveles de abstracción (reglas de negocio
-    // junto con detalles de formateo de strings y construcción manual de objetos de dominio).
+    // Clean Code - Regla 1 (Responsabilidad única):
+    // El método execute realiza múltiples tareas
+    // construcción del dominio, persistencia y notificación.
+    // La regla dice: una función debe tener una sola responsabilidad.
+    // Solución: dividir en métodos privados con responsabilidades claras.
 
-    // Clean Code - Regla 9: se usa comentario para tapar un bloque poco expresivo.
-    // La regla dice: antes de comentar, intenta mejorar nombres y extraer funciones.
-    // validar campos del command
-    final Set<ConstraintViolation<CreateUserCommand>> violations = validator.validate(command);
-    if (!violations.isEmpty()) {
-      throw new ConstraintViolationException(violations);
-    }
+    // Clean Code - Regla 2 (Funciones pequeñas):
+    // El método es largo y mezcla múltiples pasos.
+    // La regla dice: las funciones deben ser pequeñas y fáciles de entender.
+    // Solución: extraer funciones como validateCommand, checkUserExists, buildUser, etc.
 
-    log.info("Creando usuario con email=" + command.email() + ", nombre=" + command.name());
+    // Clean Code - Regla 3 (Un solo nivel de abstracción):
+    // Se mezclan operaciones de alto nivel (crear usuario) con detalles de bajo nivel
+    // (new UserId, new UserEmail, etc.).
+    // La regla dice: una función debe operar en un solo nivel de abstracción.
+    // Solución: delegar la construcción del dominio a un mapper o fábrica.
 
-    // Clean Code - Regla 10: comentario redundante — el código siguiente ya dice lo mismo.
-    // verificar si el email ya existe en la base de datos
+    // Clean Code - Regla 9 (Comentarios innecesarios):
+    // Se usan comentarios para explicar código que podría ser más expresivo.
+    // La regla dice: el código debe ser autoexplicativo.
+    // Solución: eliminar comentarios y mejorar nombres/métodos.
+
+    // Clean Code - Regla 10 (Comentarios redundantes):
+    // Comentarios como "guardar el usuario" o "retornar el usuario" no aportan valor.
+    // Solución: eliminar comentarios redundantes.
+    validateCommand(command);
+
     final UserEmail email = new UserEmail(command.email());
-    if (getUserByEmailPort.getByEmail(email).isPresent()) {
-      throw UserAlreadyExistsException.becauseEmailAlreadyExists(email.value());
-    }
+    ensureUserDoesNotExist(email);
 
-    // Clean Code - Regla 3: aquí se mezcla lógica de negocio de alto nivel (crear usuario)
-    // con detalles de construcción de bajo nivel (new UserId, new UserName, etc.).
-    // Estos detalles deberían estar encapsulados en el mapper o en una fábrica.
     final UserModel userToSave = new UserModel(
         new UserId(command.id()),
         new UserName(command.name()),
@@ -68,15 +69,27 @@ public final class CreateUserService implements CreateUserUseCase {
         UserRole.fromString(command.role()),
         UserStatus.PENDING);
 
-    // Clean Code - Regla 10: comentario que explica lo obvio — no aporta valor.
-    // guardar el usuario en la base de datos
     final UserModel savedUser = saveUserPort.save(userToSave);
 
-    // Clean Code - Regla 10: otro comentario redundante.
-    // enviar notificacion de bienvenida al usuario creado
-    emailNotificationService.notifyUserCreated(savedUser, command.password());
+    notifyUser(savedUser, command.password());
 
-    // retornar el usuario guardado
     return savedUser;
+  }
+
+  private void validateCommand(final CreateUserCommand command) {
+    final Set<ConstraintViolation<CreateUserCommand>> violations = validator.validate(command);
+    if (!violations.isEmpty()) {
+      throw new ConstraintViolationException(violations);
+    }
+  }
+
+  private void ensureUserDoesNotExist(final UserEmail email) {
+    if (getUserByEmailPort.getByEmail(email).isPresent()) {
+      throw UserAlreadyExistsException.becauseEmailAlreadyExists(email.value());
+    }
+  }
+
+  private void notifyUser(final UserModel user, final String password) {
+    emailNotificationService.notifyUserCreated(user, password);
   }
 }
