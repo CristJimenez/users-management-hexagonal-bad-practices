@@ -25,6 +25,30 @@ public class UserModel {
   UserRole role;
   UserStatus status;
 
+  public String getEmailValue() {
+    return email.value();
+  }
+
+  public String getIdValue() {
+    return id.value();
+  }
+
+  public String getNameValue() {
+    return name.value();
+  }
+
+  public String getPasswordValue() {
+    return password.value();
+  }
+
+  public String getRoleValue() {
+    return role.name();
+  }
+
+  public String getStatusValue() {
+    return status.name();
+  }
+
   public static UserModel create(
       final UserId id,
       final UserName name,

@@ -22,7 +22,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @Log
 @RequiredArgsConstructor
@@ -35,8 +36,8 @@ public final class UserRepositoryMySQL
         DeleteUserPort {
 
   // VIOLACIÓN Regla 4 (consecuencia): el mapper ya no es @UtilityClass,
-  // por lo que se instancia directamente aquí en vez de usarse como clase utilitaria.
-  private final UserPersistenceMapper persistenceMapper = new UserPersistenceMapper();
+  // por lo que sé instancia directamente aquí en vez de usarse como clase utilitaria.
+  private static final UserPersistenceMapper persistenceMapper = new UserPersistenceMapper();
 
   private static final String SQL_INSERT =
       "INSERT INTO users "
@@ -68,21 +69,6 @@ public final class UserRepositoryMySQL
 
   private final Connection connection;
 
-  // Clean Code - Regla 19 (temporal coupling): se agrega un flag de inicialización.
-  // El consumidor DEBE llamar a init() antes de usar el repositorio, pero el diseño
-  // no lo hace evidente ni lo encapsula — se llama a métodos en orden implícito frágil.
-  // Si alguien usa el repositorio sin llamar init() el comportamiento es impredecible.
-  private boolean initialized = false;
-
-  // Clean Code - Regla 19: si el orden init() → operaciones es obligatorio, el diseño
-  // debería proteger al consumidor encapsulando ese orden. Ahora es fácil usarlo mal:
-  //   service.init();
-  //   service.load();
-  //   service.process(); // ← ¿qué pasa si alguien llama esto sin init() primero?
-  public void init() {
-    this.initialized = true;
-  }
-
   @Override
   public UserModel save(final UserModel user) {
     // Clean Code - Regla 10: comentarios redundantes que repiten lo que ya dice el código.
@@ -105,13 +91,9 @@ public final class UserRepositoryMySQL
       final String password,
       final String role,
       final String status) {
-    // Clean Code - Regla 10: comentario redundante — la línea siguiente ya es clara.
-    // verificar que todos los parámetros tengan valor
     if (id == null || name == null || email == null || password == null || role == null || status == null) {
       throw new IllegalArgumentException("Todos los campos son obligatorios");
     }
-    // Clean Code - Regla 10: otro comentario redundante.
-    // construir y guardar el modelo
     throw new UnsupportedOperationException("Usar save(UserModel) en su lugar.");
   }
 

@@ -17,7 +17,7 @@ import java.util.List;
 
 // VIOLACIÓN Regla 4: clase con solo métodos de conversión que NO está anotada con @UtilityClass.
 // Sin @UtilityClass, Lombok no genera constructor privado y la clase puede instanciarse.
-// Además los métodos deberían ser static al no usar estado de instancia.
+// Además, los métodos deberían ser static al no usar estado de instancia.
 // Clean Code - Regla 13 (evitar clases utilitarias innecesarias):
 // Esta clase existe porque NO se usa MapStruct (regla 7 de Reglas 1.md: usar MapStruct como
 // única librería de mapeo). Al escribir mappers manualmente se crea una clase "utilitaria"
@@ -33,12 +33,12 @@ public class UserPersistenceMapper {
     // debería existir un método user.getIdValue() o delegarse al propio objeto.
     // La Ley de Deméter dice: habla solo con tus amigos directos, no con los amigos de tus amigos.
     return new UserPersistenceDto(
-        user.getId().value(),
-        user.getName().value(),
-        user.getEmail().value(),
-        user.getPassword().value(),
-        user.getRole().name(),
-        user.getStatus().name(),
+        user.getIdValue(),
+        user.getNameValue(),
+        user.getEmailValue(),
+        user.getPasswordValue(),
+        user.getRoleValue(),
+        user.getStatusValue(),
         null,
         null);
   }
