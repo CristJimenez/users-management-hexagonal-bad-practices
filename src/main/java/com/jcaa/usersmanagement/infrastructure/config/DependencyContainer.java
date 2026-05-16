@@ -59,7 +59,6 @@ public final class DependencyContainer {
     //   ajustar múltiples puntos de acoplamiento.
     // Clean Code - Regla 19 (temporal coupling): además, este patrón init() → uso
     // establece un orden implícito frágil que el diseño no encapsula ni protege.
-    userRepository.init();
 
     final JavaMailEmailSenderAdapter emailSender =
         new JavaMailEmailSenderAdapter(buildSmtpConfig(properties));
@@ -102,7 +101,7 @@ public final class DependencyContainer {
             properties.get(DB_PASSWORD));
     // VIOLACIÓN Regla 4 (consecuencia): DatabaseConnectionFactory ya no tiene @UtilityClass,
     // por lo que debe instanciarse para llamar a createConnection.
-    return new DatabaseConnectionFactory().createConnection(config);
+    return DatabaseConnectionFactory.createConnection(config);
   }
 
   private static SmtpConfig buildSmtpConfig(final AppProperties properties) {
