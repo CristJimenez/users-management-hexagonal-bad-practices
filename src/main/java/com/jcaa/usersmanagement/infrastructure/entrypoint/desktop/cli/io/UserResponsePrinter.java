@@ -3,7 +3,6 @@ package com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.cli.io;
 import com.jcaa.usersmanagement.domain.enums.UserStatus;
 import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.dto.UserResponse;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -59,26 +58,5 @@ public final class UserResponsePrinter {
                             UserStatus
                                     .fromString(user.status())
                                     .getDisplayLabel())));
-  }
-
-  // Clean Code - Regla 16 (evitar condicionales repetitivas cuando el polimorfismo aporta claridad):
-  // Esta cadena de if/else crece con cada nuevo estado posible del usuario.
-  // La regla dice: cuando una condición por tipo/estado crece repetidamente, se evalúa
-  // encapsular el comportamiento. Aquí, un Map<String, String> de estados a etiquetas,
-  // o un método getDisplayLabel() en el propio enum UserStatus, eliminaría toda la cascada.
-  private static String getStatusLabel(final String status) {
-    if ("ACTIVE".equals(status)) {
-      return "Activo";
-    } else if ("INACTIVE".equals(status)) {
-      return "Inactivo";
-    } else if ("PENDING".equals(status)) {
-      return "Pendiente de activacion";
-    } else if ("BLOCKED".equals(status)) {
-      return "Bloqueado";
-    } else if ("DELETED".equals(status)) {
-      return "Eliminado";
-    } else {
-      return "Estado desconocido";
-    }
   }
 }
