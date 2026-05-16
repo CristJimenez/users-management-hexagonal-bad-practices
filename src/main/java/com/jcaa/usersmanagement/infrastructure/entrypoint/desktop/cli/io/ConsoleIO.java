@@ -7,6 +7,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public final class ConsoleIO {
 
+  private static final String BLANK_VALUE_MESSAGE =
+          "  Value cannot be blank. Please try again.";
+
+  private static final String INVALID_NUMBER_MESSAGE =
+          "  Invalid input. Please enter a number.";
+
   private final Scanner scanner;
   private final PrintStream out;
 
@@ -16,16 +22,16 @@ public final class ConsoleIO {
     // El mismo concepto —"entrada del usuario leída de consola"— se llama "v" aquí
     // y "r" en readInt(), dentro de la misma clase. Nombres distintos para el mismo
     // concepto hacen que el lector asuma incorrectamente que son ideas diferentes.
-    String v;
+    String value;
     do {
       out.print(prompt);
-      v = scanner.nextLine().trim();
-      if (v.isBlank()) {
+      value = scanner.nextLine().trim();
+      if (value.isBlank()) {
         // VIOLACIÓN Regla 10: texto hardcodeado directamente — debe ser una constante.
-        out.println("  Value cannot be blank. Please try again.");
+        out.println(BLANK_VALUE_MESSAGE);
       }
-    } while (v.isBlank());
-    return v;
+    } while (value.isBlank());
+    return value;
   }
 
   public String readOptional(final String prompt) {
@@ -37,12 +43,12 @@ public final class ConsoleIO {
     while (true) {
       out.print(prompt);
       // VIOLACIÓN Regla 4: nombre abreviado "r" en lugar del nombre descriptivo "rawInput".
-      final String r = scanner.nextLine().trim();
+      final String rawInput = scanner.nextLine().trim();
       try {
-        return Integer.parseInt(r);
+        return Integer.parseInt(rawInput);
       } catch (final NumberFormatException ignored) {
         // VIOLACIÓN Regla 10: texto hardcodeado directamente — debe ser una constante.
-        out.println("  Invalid input. Please enter a number.");
+        out.println(INVALID_NUMBER_MESSAGE);
       }
     }
   }
