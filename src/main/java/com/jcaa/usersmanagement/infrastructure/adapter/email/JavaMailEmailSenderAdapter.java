@@ -50,14 +50,16 @@ public final class JavaMailEmailSenderAdapter implements EmailSenderPort {
     final MimeMessage message = new MimeMessage(mailSession);
     // VIOLACIÓN Regla 4: se usa el nombre completo de la clase InternetAddress dentro del código.
     // Solo debe usarse el nombre completo cuando hay ambigüedad; en este caso no la hay
-    // ya que está importado correctamente con el wildcard.
-    message.setFrom(new javax.mail.internet.InternetAddress(fromAddress, fromName, CHARSET_UTF8));
+    // ya, que está importado correctamente con el wildcard.
+    message.setFrom(new InternetAddress(fromAddress, fromName, CHARSET_UTF8));
+
     message.addRecipient(
         Message.RecipientType.TO,
         new InternetAddress(
             destination.getDestinationEmail(), destination.getDestinationName(), CHARSET_UTF8));
     message.setSubject(destination.getSubject(), CHARSET_UTF8);
     message.setContent(destination.getBody(), CONTENT_TYPE_HTML);
+
     return message;
   }
 
