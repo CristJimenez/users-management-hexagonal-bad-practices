@@ -3,7 +3,6 @@ package com.jcaa.usersmanagement.application.service;
 import com.jcaa.usersmanagement.application.port.in.LoginUseCase;
 import com.jcaa.usersmanagement.application.port.out.GetUserByEmailPort;
 import com.jcaa.usersmanagement.application.service.dto.command.LoginCommand;
-import com.jcaa.usersmanagement.domain.enums.UserStatus;
 import com.jcaa.usersmanagement.domain.exception.InvalidCredentialsException;
 import com.jcaa.usersmanagement.domain.model.UserModel;
 import com.jcaa.usersmanagement.domain.valueobject.UserEmail;
@@ -33,8 +32,6 @@ public final class LoginService implements LoginUseCase {
 
     validatePassword(user, command.password());
 
-    validateUserStatus(user);
-
     return user;
   }
 
@@ -59,13 +56,6 @@ public final class LoginService implements LoginUseCase {
 
     if (!user.getPassword().verifyPlain(plainPassword)) {
       throw InvalidCredentialsException.becauseCredentialsAreInvalid();
-    }
-  }
-
-  private void validateUserStatus(final UserModel user) {
-
-    if (!user.isAllowedToLogin()) {
-      throw InvalidCredentialsException.becauseUserIsNotActive();
     }
   }
 
