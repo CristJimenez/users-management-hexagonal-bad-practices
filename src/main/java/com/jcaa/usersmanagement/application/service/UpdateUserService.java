@@ -17,6 +17,7 @@ import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Log
@@ -30,7 +31,7 @@ public final class UpdateUserService implements UpdateUserUseCase {
   private final Validator validator;
 
   @Override
-  public UserModel execute(final UpdateUserCommand command) {
+  public void execute(final UpdateUserCommand command) {
     // Clean Code - Regla 8 (separar comandos y consultas — CQS):
     // Este método MODIFICA estado (actualiza el usuario en base de datos)
     // Y TAMBIÉN RETORNA el usuario actualizado (consulta).
@@ -54,21 +55,18 @@ public final class UpdateUserService implements UpdateUserUseCase {
     // La regla dice: no usar boolean flags para cambiar el comportamiento interno de un método.
     // Si true/false altera el flujo, probablemente hay dos responsabilidades distintas.
     // Solución: dos métodos separados updateUserAndNotify() y updateUserSilently().
-    notifyIfRequired(updatedUser, true);
-
-    return updatedUser;
+    updateUserAndNotify(updatedUser);
   }
 
-  // Clean Code - Regla 6: método con dos modos de operar según el boolean — viola la regla.
-  // Clean Code - Regla 7: efecto secundario oculto — el nombre "notifyIfRequired" no indica
-  // que también hace logging cuando notify=false. El nombre es engañoso sobre sus efectos.
-  private void notifyIfRequired(final UserModel user, final boolean notify) {
-    if (notify) {
-      emailNotificationService.notifyUserUpdated(user);
-    } else {
-      // cuando no se notifica, se registra igualmente en el log interno
-      log.info("Actualización silenciosa para usuario: " + user.getId().value());
-    }
+  private void updateUserAndNotify(final UserModel user) {
+    emailNotificationService.notifyUserUpdated(user);
+  }
+
+  private void updateUserSilently(final UserModel user) {
+    log.info(
+            "Actualización silenciosa para usuario: "
+                    + user.getId().value()
+    );
   }
 
   private void validateCommand(final UpdateUserCommand command) {
@@ -97,12 +95,22 @@ public final class UpdateUserService implements UpdateUserUseCase {
     // Clean Code - Regla 27 (código listo para leer, no solo para ejecutar):
     // Sin explicación oral del autor es imposible determinar qué condición exacta
     // se está evaluando ni por qué hay lógica redundante en la segunda mitad del OR.
-    if (getUserByEmailPort.getByEmail(newEmail).isPresent()
-        && !getUserByEmailPort.getByEmail(newEmail).get().getId().equals(ownerId)
-        && !getUserByEmailPort.getByEmail(newEmail).get().getEmail().value().equals(newEmail.value())
-            || (getUserByEmailPort.getByEmail(newEmail).isPresent()
-                && !getUserByEmailPort.getByEmail(newEmail).get().getId().value().equals(ownerId.value()))) {
-      throw UserAlreadyExistsException.becauseEmailAlreadyExists(newEmail.value());
+    final Optional<UserModel> existingUser =
+            getUserByEmailPort.getByEmail(newEmail);
+
+    if (existingUser.isEmpty()) {
+      return;
     }
+
+    final UserModel user = existingUser.get();
+
+    final boolean belongsToAnotherUser =
+            !user.getId().equals(ownerId);
+
+    if (belongsToAnotherUser) {
+      throw UserAlreadyExistsException
+              .becauseEmailAlreadyExists(newEmail.value());
+    }
+
   }
 }
