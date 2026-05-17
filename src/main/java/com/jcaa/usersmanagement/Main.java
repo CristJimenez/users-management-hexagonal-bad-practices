@@ -4,8 +4,8 @@ import com.jcaa.usersmanagement.infrastructure.config.DependencyContainer;
 import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.cli.UserManagementCli;
 import com.jcaa.usersmanagement.infrastructure.entrypoint.desktop.cli.io.ConsoleIO;
 import java.util.Scanner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.extern.java.Log;
 
 // Clean Code - Regla 24 (consistencia semántica):
 // Todo el proyecto usa java.util.logging.Logger (vía @Log de Lombok o Logger.getLogger()),
@@ -19,9 +19,10 @@ import org.slf4j.LoggerFactory;
 // UserManagementCli y ConsoleIO. Si se quiere reemplazar cualquiera de ellas
 // (p. ej., cambiar el entrypoint de CLI a GUI), hay que editar el punto de entrada
 // de la aplicación. No hay ninguna abstracción que proteja este acoplamiento.
+@Log
 public final class Main {
 
-  private static final Logger log = LoggerFactory.getLogger(Main.class);
+  private Main(){}
 
   // Clean Code - Regla 1 (una sola cosa por función):
   // main() hace demasiadas cosas en un solo método:
@@ -33,9 +34,30 @@ public final class Main {
   //   buildContainer(), buildConsole(), buildCli(), run().
   public static void main(final String[] args) {
     log.info("Starting Users Management System...");
-    final DependencyContainer container = new DependencyContainer();
+    final DependencyContainer container = buildContainer();
     try (final Scanner scanner = new Scanner(System.in)) {
-      new UserManagementCli(container.userController(), new ConsoleIO(scanner, System.out)).start();
+      final ConsoleIO console  = buildConsole(scanner);
+      final UserManagementCli cli = buildCli(container, console);
+
+      runCli(cli);
     }
+  }
+
+  private static DependencyContainer buildContainer() {
+    return new DependencyContainer();
+  }
+
+  private static ConsoleIO buildConsole(final Scanner scanner) {
+    return new ConsoleIO(scanner, System.out);
+  }
+
+  private static UserManagementCli buildCli(
+          final DependencyContainer container,
+          final ConsoleIO console) {
+    return new UserManagementCli(container.userController(), console);
+  }
+
+  private static void runCli(final UserManagementCli cli) {
+    cli.start();
   }
 }
