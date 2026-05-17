@@ -15,6 +15,8 @@ import java.util.List;
 
 public final class UserDesktopMapper {
 
+  private static final String INVALID_ID_MESSAGE = "ID inválido";
+
   private UserDesktopMapper() {
     // clase utilitaria: no se permite instanciar
   }
@@ -68,7 +70,7 @@ public final class UserDesktopMapper {
   // y el contrato de salida es claro: o pasa sin error o lanza excepción.
   private static void requireValidId(final String id) {
     if (id == null || id.isBlank()) {
-      throw new IllegalArgumentException("ID inválido");
+      throw new IllegalArgumentException(INVALID_ID_MESSAGE);
     }
   }
 }
